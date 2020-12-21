@@ -602,9 +602,11 @@ class BVHTraceOptions {
   // Prim ID to skip for avoiding self-intersection
   // -1 = no skipping
   unsigned int skip_prim_id;
+  float skip_prim_id_t;
 
   bool cull_back_face;
   unsigned char pad[3];  ///< Padding (not used)
+  std::map<unsigned int, float> *ignored_prim_ids = nullptr;  // Managed externally. Set to null to disable this feature. Stores t values.
 
   BVHTraceOptions() {
     prim_ids_range[0] = 0;
@@ -1037,6 +1039,11 @@ class TriangleIntersector {
 
     // Self-intersection test.
     if (prim_index == trace_options_.skip_prim_id) {
+      return false;
+    }
+
+    if (trace_options_.ignored_prim_ids &&
+        trace_options_.ignored_prim_ids->find(prim_index) != trace_options_.ignored_prim_ids->end()) {
       return false;
     }
 
